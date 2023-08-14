@@ -5,5 +5,11 @@
 (development
  (depends-on "use-package")
  (depends-on "evil")
- (depends-on "treemacs"))
+ (depends-on "treemacs")
+ (depends-on "treemacs-evil")
+ (depends-on "doom-themes")
+ (depends-on "aweshell"
+             :git "https://github.com/manateelazycat/aweshell.git"
+	     :branch "master"))
+
 

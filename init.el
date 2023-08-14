@@ -1,7 +1,27 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 系统配置 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 关闭备份文件
+(setq make-backup-files nil)
+
+;; 窗口切割操作：
+;; C-x 2 纵向切割
+;; C-x 3 横向切割
+;; C-x 0 关闭
+
+;; 使用 Shift + 方向键 控制当前窗口
+(windmove-default-keybindings)
+(setq windmove-wrap-around t)
+
+;; 保存窗口布局
+(desktop-save-mode 1)
+(setq desktop-dir
+      (expand-file-name ".cache/desktop" user-emacs-directory))
+(desktop-read desktop-dir)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;   插件   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 设置加载路径
 (setq pkg-path
   (substring 
-    (shell-command-to-string "cask package-directory") 
+    (shell-command-to-string (format "cask package-directory --path %s" user-emacs-directory)) 
    0 -1))
 (let* ((local-pkgs (mapcar 'file-name-directory (directory-files-recursively pkg-path "\\.el$"))))
     (if (file-accessible-directory-p pkg-path)
@@ -18,8 +38,11 @@
 
 ;; 启用 evil
 (use-package evil
+  :after (aweshell)
   :config
-  (evil-mode 1))
+  (evil-mode 1)
+  (define-key evil-normal-state-map (kbd "SPC b") 'ibuffer)
+  (define-key evil-normal-state-map (kbd "SPC s") 'eshell))
 
 ;; 启用 treemacs
 (use-package treemacs
@@ -88,15 +111,15 @@
     (treemacs-follow-mode t)
     (treemacs-filewatch-mode t)
     (treemacs-fringe-indicator-mode 'always)
-    (when treemacs-python-executable
-      (treemacs-git-commit-diff-mode t))
+;;    (when treemacs-python-executable
+;;      (treemacs-git-commit-diff-mode t))
 
-    (pcase (cons (not (null (executable-find "git")))
-                 (not (null treemacs-python-executable)))
-      (`(t . t)
-       (treemacs-git-mode 'deferred))
-      (`(t . _)
-       (treemacs-git-mode 'simple)))
+   ;; (pcase (cons (not (null (executable-find "git")))
+   ;;              (not (null treemacs-python-executable)))
+   ;;   (`(t . t)
+   ;;    (treemacs-git-mode 'deferred))
+   ;;   (`(t . _)
+   ;;    (treemacs-git-mode 'simple)))
 
     (treemacs-hide-gitignored-files-mode nil))
   :bind
@@ -112,6 +135,25 @@
 (use-package treemacs-evil
   :after (treemacs evil))
 
-;; 关闭备份文件
-(setq make-backup-files nil)
+;; doom-themes 主题
+(use-package doom-themes
+  :config
+  ;; Global settings (defaults)
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  (load-theme 'doom-one t)
+
+  ;; Enable flashing mode-line on errors
+  ;;; (doom-themes-visual-bell-config)
+  ;; Enable custom neotree theme (all-the-icons must be installed!)
+  ;;; (doom-themes-neotree-config)
+  ;; or for treemacs users
+  ;; (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+  ;;; (doom-themes-treemacs-config)
+  ;; Corrects (and improves) org-mode's native fontification.
+  ;;;(doom-themes-org-config)
+  )
+
+;; 启用 aweshell 管理多个 shell
+(use-package aweshell)
 
