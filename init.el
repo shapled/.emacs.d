@@ -1,3 +1,8 @@
+(load-file "~/.emacs.d/env.el")
+(when (eq system-type 'windows-nt)
+  (set-language-environment 'Chinese-GB18030)
+  (setenv "PYTHONIOENCODING" "gb18030"))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;   包管理   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; 设置加载路径
@@ -82,7 +87,12 @@
   ;; 对齐 mini buffer 中的内容
   (use-package marginalia
     :config
-    (marginalia-mode)))
+    (marginalia-mode))
+
+  ;; 基于 rg 的搜索功能
+  (use-package consult
+    :bind
+    (("<ESC> /" . 'consult-ripgrep))))
 
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
 (use-package savehist
@@ -94,8 +104,9 @@
   :ensure nil
   :custom
   ;; Configure a custom style dispatcher (see the Consult wiki)
-  ;; (orderless-style-dispatchers '(+orderless-consult-dispatch orderless-affix-dispatch))
-  ;; (orderless-component-separator #'orderless-escapable-split-on-space)
+  (orderless-style-dispatchers '(+orderless-consult-dispatch orderless-affix-dispatch))
+  (orderless-component-separator #'orderless-escapable-split-on-space)
+  
   (completion-styles '(orderless basic))
   (completion-category-defaults nil)
   (completion-category-overrides '((file (styles partial-completion)))))
@@ -103,7 +114,24 @@
 ;; 树状目录
 (use-package direx
   :bind
-  ("C-x C-d". direx:jump-to-directory))
+  ("<ESC> d". direx:jump-to-directory))
+
+;; 必备的 ai 提示
+(use-package aider
+  :config
+  (setq aider-args '("--no-auto-commits" "--deepseek"))
+  (if (or (not (boundp 'deepseek-api-key)) (null deepseek-api-key) (string= deepseek-api-key ""))
+      (warn "variable deepseek-api-key is not set or is empty.")
+    (setenv "DEEPSEEK_API_KEY" deepseek-api-key))
+
+  (add-hook 'find-file-hook
+	    (lambda ()
+	      (when (and (buffer-file-name)
+			 (string-match-p "aider" (buffer-file-name)))
+		(aider-minor-mode 1))))
+	    
+  :bind
+  (("<ESC> a" . 'aider-transient-menu)))
 
 ;; TODO: 关闭时保留工作区
 (use-package perspective
